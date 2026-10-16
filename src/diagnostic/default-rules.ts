@@ -35,6 +35,7 @@ function descendants(snapshot: DebugSnapshot, layer: LayerSnapshot): number {
   return total;
 }
 
+
 export function createDefaultRules(): DiagnosticRule[] {
   return [
     {
