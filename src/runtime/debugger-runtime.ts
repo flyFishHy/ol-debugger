@@ -1,14 +1,14 @@
 import Map from 'ol/Map.js';
 import { ObjectIdStore } from '../snapshot/object-id-store.js';
 import { SnapshotBuilder } from '../snapshot/snapshot-builder.js';
-import type { DebugSnapshot, SourceSnapshot } from '../snapshot/snapshot-types.js';
+import type { DebugSnapshot } from '../snapshot/snapshot-types.js';
 import type { DiagnosticIssue, IssueQueryOptions } from '../issue/issue-types.js';
 import { IssueStore } from '../issue/issue-store.js';
 import { DiagnosticEngine } from '../diagnostic/diagnostic-engine.js';
 import type { DiagnosticRule } from '../diagnostic/diagnostic-rule.js';
 import { createDefaultRules } from '../diagnostic/default-rules.js';
 import { MapObserver } from '../observer/map-observer.js';
-import { RefreshScheduler } from '../observer/refresh-scheduler.js';
+import { RefreshScheduler } from './refresh-scheduler.js';
 import { DebuggerError } from './debugger-error.js';
 
 export interface DebuggerRuntimeOptions {
@@ -29,6 +29,7 @@ export class DebuggerRuntime {
   private readonly snapshotListeners = new Set<(snapshot: DebugSnapshot) => void>();
   private map: Map | undefined;
   private latestSnapshot: DebugSnapshot | undefined;
+  private lastDiagnosedAt: number | undefined;
   private destroyed = false;
   private readonly autoDiagnose: boolean;
   private readonly enableDiagnostics: boolean;
@@ -49,6 +50,8 @@ export class DebuggerRuntime {
 
   isConnected(): boolean { return this.map !== undefined; }
   getSnapshot(): DebugSnapshot | undefined { return this.latestSnapshot ? cloneSnapshot(this.latestSnapshot) : undefined; }
+  getLastDiagnosedAt(): number | undefined { return this.lastDiagnosedAt; }
+  notifyReportExportFailed(error: unknown): DebuggerError { return this.reportError('REPORT_EXPORT_FAILED', error); }
   getIssues(options?: IssueQueryOptions): DiagnosticIssue[] { return this.issueStore.list(options); }
 
   connect(map: Map): void {
@@ -72,7 +75,10 @@ export class DebuggerRuntime {
   }
 
   subscribeSnapshot(listener: (snapshot: DebugSnapshot) => void): () => void {
-    if (this.latestSnapshot) listener(cloneSnapshot(this.latestSnapshot));
+    if (this.latestSnapshot) {
+      try { listener(cloneSnapshot(this.latestSnapshot)); }
+      catch (error) { this.reportError('SNAPSHOT_FAILED', error, { context: 'snapshot-subscriber' }); }
+    }
     this.snapshotListeners.add(listener);
     return () => this.snapshotListeners.delete(listener);
   }
@@ -92,15 +98,17 @@ export class DebuggerRuntime {
     const map = this.map;
     if (!map || this.destroyed) return;
     try {
-      const snapshot = this.builder.build(map, (source, id): Partial<SourceSnapshot> => this.observer.getSourceState(source, id));
+      this.observer.syncTree();
+      const snapshot = this.builder.build(map, (source, id) => this.observer.getSourceState(source, id));
       this.latestSnapshot = snapshot;
+      if (this.enableDiagnostics && (forceDiagnose || this.autoDiagnose)) {
+        const result = this.engine.run(snapshot);
+        this.lastDiagnosedAt = Date.now();
+        this.issueStore.reconcile(result.candidates, result.successfulRuleIds);
+      }
       for (const listener of [...this.snapshotListeners]) {
         try { listener(cloneSnapshot(snapshot)); }
         catch (error) { this.reportError('SNAPSHOT_FAILED', error, { context: 'snapshot-subscriber' }); }
-      }
-      if (this.enableDiagnostics && (forceDiagnose || this.autoDiagnose)) {
-        const result = this.engine.run(snapshot);
-        this.issueStore.reconcile(result.candidates, result.successfulRuleIds);
       }
     } catch (error) { this.reportError('SNAPSHOT_FAILED', error); }
   }
@@ -110,6 +118,7 @@ export class DebuggerRuntime {
     this.observer.stop();
     this.map = undefined;
     this.latestSnapshot = undefined;
+    this.lastDiagnosedAt = undefined;
     this.builder.clearActiveObjects();
     this.issueStore.resolveAllActive();
     for (const listener of [...this.snapshotListeners]) {
@@ -122,10 +131,11 @@ export class DebuggerRuntime {
     if (this.destroyed) throw new DebuggerError('INSTANCE_DESTROYED', 'This debugger instance has been destroyed.');
   }
 
-  private reportError(code: ConstructorParameters<typeof DebuggerError>[0], error: unknown, context: Record<string, string | number | boolean | null> = {}): void {
+  private reportError(code: ConstructorParameters<typeof DebuggerError>[0], error: unknown, context: Record<string, string | number | boolean | null> = {}): DebuggerError {
     const message = error instanceof Error ? error.message : String(error);
     const wrapped = new DebuggerError(code, message, context);
     try { this.onError?.(wrapped); } catch { /* User error handlers must not interrupt debugger state. */ }
+    return wrapped;
   }
 }
 

@@ -89,8 +89,12 @@ export class SnapshotBuilder {
     const kind = layer instanceof LayerGroup ? 'group' : layer instanceof Layer ? 'layer' : 'unknown';
     let title = `${className} (${id})`;
     try {
-      const candidate = layer.get('title') ?? layer.get('name');
-      if (typeof candidate === 'string' && candidate.trim()) title = candidate.trim();
+      const titleValue = layer.get('title');
+      const nameValue = layer.get('name');
+      const candidate = typeof titleValue === 'string' && titleValue.trim()
+        ? titleValue
+        : typeof nameValue === 'string' && nameValue.trim() ? nameValue : undefined;
+      if (candidate) title = candidate.trim();
     } catch (error) { this.onError(error, `layer:${id}:title`); }
 
     const visible = safeRead(() => layer.getVisible(), true, this.onError, `layer:${id}:visible`);

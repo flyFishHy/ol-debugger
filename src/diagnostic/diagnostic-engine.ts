@@ -1,6 +1,7 @@
 import type { DebugSnapshot } from '../snapshot/snapshot-types.js';
 import type { DiagnosticIssueCandidate } from '../issue/issue-types.js';
-import type { DiagnosticContext, DiagnosticRule } from './diagnostic-rule.js';
+import type { DiagnosticContext } from './diagnostic-context.js';
+import type { DiagnosticRule } from './diagnostic-rule.js';
 
 export interface DiagnosticRunResult {
   candidates: DiagnosticIssueCandidate[];

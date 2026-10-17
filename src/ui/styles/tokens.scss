@@ -1,0 +1,41 @@
+:host {
+  --ol-debugger-bg: #111722;
+  --ol-debugger-surface: #171f2c;
+  --ol-debugger-subtle: #202b3a;
+  --ol-debugger-hover: #202d3e;
+  --ol-debugger-border: #2b3748;
+  --ol-debugger-text: #e7edf5;
+  --ol-debugger-muted: #8f9caf;
+  --ol-debugger-accent: #72b8ff;
+  --ol-debugger-accent-bg: #142c43;
+  --ol-debugger-accent-border: #315a7c;
+  --ol-debugger-danger: #ff8b83;
+  --ol-debugger-danger-bg: #402522;
+  --ol-debugger-warning: #f5c575;
+  --ol-debugger-warning-bg: #3c3020;
+  --ol-debugger-success: #6dd5ad;
+  --ol-debugger-success-bg: #17382f;
+  --ol-debugger-font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  display: block;
+  color: var(--ol-debugger-text);
+  font-family: var(--ol-debugger-font);
+}
+
+:host([data-theme="light"]) {
+  --ol-debugger-bg: #f5f7fa;
+  --ol-debugger-surface: #fff;
+  --ol-debugger-subtle: #eef1f5;
+  --ol-debugger-hover: #eef4fa;
+  --ol-debugger-border: #d8dee8;
+  --ol-debugger-text: #182233;
+  --ol-debugger-muted: #657286;
+  --ol-debugger-accent: #1765a5;
+  --ol-debugger-accent-bg: #e7f2fc;
+  --ol-debugger-accent-border: #aac8e2;
+  --ol-debugger-danger: #a93630;
+  --ol-debugger-danger-bg: #fff0ef;
+  --ol-debugger-warning: #875a0a;
+  --ol-debugger-warning-bg: #fff6e3;
+  --ol-debugger-success: #167352;
+  --ol-debugger-success-bg: #e7f8f1;
+}

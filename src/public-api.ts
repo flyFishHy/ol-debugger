@@ -8,8 +8,8 @@ import { createReport } from './report/create-report.js';
 import type { DiagnosticRule } from './diagnostic/diagnostic-rule.js';
 import { defineOLDebuggerElements } from './ui/define-elements.js';
 import { DebuggerPanel } from './ui/debugger-panel.js';
-import type { DebuggerViewModel } from './ui/ui-types.js';
 import type { DebuggerLayout, DebuggerTab, DebuggerTheme } from './ui/ui-types.js';
+import { PanelController } from './ui/panel-controller.js';
 
 export type DebuggerPosition = 'left' | 'right';
 export type { DebuggerLayout, DebuggerTab, DebuggerTheme };
@@ -74,7 +74,7 @@ export function createDebugger(options: DebuggerOptions = {}): DebuggerControlle
 
   const runtime = new DebuggerRuntime(options);
   const panel = document.createElement('ol-debugger-panel') as DebuggerPanel;
-  panel.viewModel = createViewModel(runtime);
+  const panelController = new PanelController(panel, runtime);
   panel.open = resolved.initiallyOpen;
   panel.theme = resolved.theme;
   panel.position = resolved.position;
@@ -89,7 +89,7 @@ export function createDebugger(options: DebuggerOptions = {}): DebuggerControlle
   if (resolved.initialTab !== 'overview') panel.setAttribute('data-initial-tab', resolved.initialTab);
   (options.target ?? document.body).append(panel);
   if (options.map) runtime.connect(options.map);
-  panel.refreshConnection();
+  panelController.refreshConnection();
 
   let destroyed = false;
   const assertAlive = (): void => { if (destroyed) throw new DebuggerError('INSTANCE_DESTROYED', 'This debugger instance has been destroyed.'); };
@@ -98,33 +98,23 @@ export function createDebugger(options: DebuggerOptions = {}): DebuggerControlle
     open() { assertAlive(); panel.open = true; },
     close() { assertAlive(); panel.open = false; },
     toggle() { assertAlive(); panel.open = !panel.open; },
-    connect(map) { assertAlive(); runtime.connect(map); panel.refreshConnection(); },
-    disconnect() { assertAlive(); runtime.disconnect(); panel.refreshConnection(); },
+    connect(map) { assertAlive(); panelController.connect(map); },
+    disconnect() { assertAlive(); panelController.disconnect(); },
     inspect() { return destroyed ? undefined : runtime.inspect(); },
     diagnose() { assertAlive(); return runtime.diagnose(); },
     getIssues(query) { return destroyed ? [] : runtime.getIssues(query); },
-    exportReport() { return createReport(destroyed ? undefined : runtime.inspect(), destroyed ? [] : runtime.getIssues(), resolved.includeFullUrlsInReport); },
+    exportReport() {
+      try { return createReport(destroyed ? undefined : runtime.inspect(), destroyed ? [] : runtime.getIssues(), resolved.includeFullUrlsInReport, (error) => { runtime.notifyReportExportFailed(error); }); }
+      catch (error) { throw runtime.notifyReportExportFailed(error); }
+    },
     subscribeSnapshot(listener) { return destroyed ? () => undefined : runtime.subscribeSnapshot(listener); },
     subscribeIssues(listener) { return destroyed ? () => undefined : runtime.subscribeIssues(listener); },
     destroy() {
       if (destroyed) return;
-      panel.disposeViewModel();
+      panelController.dispose();
       runtime.destroy();
       panel.remove();
       destroyed = true;
     },
-  };
-}
-
-function createViewModel(runtime: DebuggerRuntime): DebuggerViewModel {
-  return {
-    isConnected: () => runtime.isConnected(),
-    getSnapshot: () => runtime.getSnapshot(),
-    getIssues: (options) => runtime.getIssues(options),
-    diagnose: () => runtime.diagnose(),
-    connect: (map) => runtime.connect(map),
-    disconnect: () => runtime.disconnect(),
-    subscribeSnapshot: (listener) => runtime.subscribeSnapshot(listener),
-    subscribeIssues: (listener) => runtime.subscribeIssues(listener),
   };
 }

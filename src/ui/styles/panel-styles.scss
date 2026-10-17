@@ -1,0 +1,34 @@
+:host { display:block; color:var(--ol-debugger-text); font-family:var(--ol-debugger-font); }
+:host([data-layout="embedded"]) { width:100%; height:100%; }
+    :host([hidden]) { display:none; }
+    .ol-debugger-shell { position:fixed; top:0; bottom:0; width:min(560px,max(320px,min(var(--ol-debugger-width,380px),100vw))); z-index:var(--ol-debugger-z,2147483000); display:flex; flex-direction:column; background:var(--ol-debugger-bg); border:1px solid var(--ol-debugger-border); box-shadow:0 16px 48px #0004; color:var(--ol-debugger-text); transition:transform .18s ease, opacity .18s ease; }
+    .ol-debugger-shell.ol-debugger-right { right:0; border-radius:14px 0 0 14px; }
+    .ol-debugger-shell.ol-debugger-left { left:0; border-radius:0 14px 14px 0; }
+    :host([data-layout="embedded"]) .ol-debugger-shell { position:relative; top:auto; bottom:auto; left:auto; right:auto; height:100%; max-height:100%; width:100%; min-height:0; border-radius:12px; }
+    .ol-debugger-body { min-height:0; flex:1; display:grid; grid-template-rows:auto minmax(0,1fr); }
+    .ol-debugger-content { overflow:auto; min-height:0; padding:14px; }
+    .ol-debugger-section-title { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 12px; }
+    h2 { margin:0; font:700 14px/1.2 var(--ol-debugger-font); letter-spacing:-.02em; }
+    h3 { margin:18px 0 8px; font:700 11px/1.2 var(--ol-debugger-font); text-transform:uppercase; letter-spacing:.09em; color:var(--ol-debugger-muted); }
+    .ol-debugger-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .ol-debugger-card { min-width:0; padding:11px; border:1px solid var(--ol-debugger-border); border-radius:9px; background:var(--ol-debugger-surface); }
+    .ol-debugger-label { display:block; margin-bottom:6px; color:var(--ol-debugger-muted); font:600 9px/1 var(--ol-debugger-font); text-transform:uppercase; letter-spacing:.08em; }
+    .ol-debugger-value { display:block; overflow-wrap:anywhere; color:var(--ol-debugger-text); font:500 12px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace; }
+    .ol-debugger-toolbar { display:flex; gap:7px; align-items:center; margin:0 0 12px; }
+    input, select { width:100%; min-width:0; padding:8px 9px; color:var(--ol-debugger-text); background:var(--ol-debugger-surface); border:1px solid var(--ol-debugger-border); border-radius:7px; font:12px/1.2 var(--ol-debugger-font); outline:none; }
+    input:focus, select:focus { border-color:var(--ol-debugger-accent); box-shadow:0 0 0 2px color-mix(in srgb,var(--ol-debugger-accent) 20%,transparent); }
+    .ol-debugger-button { display:inline-flex; align-items:center; justify-content:center; gap:6px; flex:none; min-height:31px; padding:0 10px; color:var(--ol-debugger-text); background:var(--ol-debugger-surface); border:1px solid var(--ol-debugger-border); border-radius:7px; font:600 11px/1 var(--ol-debugger-font); cursor:pointer; }
+    .ol-debugger-button:hover { border-color:var(--ol-debugger-accent-border); background:var(--ol-debugger-hover); }
+    .ol-debugger-button.ol-debugger-primary { color:#061321; background:var(--ol-debugger-accent); border-color:var(--ol-debugger-accent); }
+    .ol-debugger-button.ol-debugger-primary:hover { filter:brightness(1.06); }
+    .ol-debugger-columns { display:grid; grid-template-columns:minmax(0,1fr); gap:13px; }
+    .ol-debugger-details { margin-top:14px; padding-top:13px; border-top:1px solid var(--ol-debugger-border); }
+    dl { display:grid; grid-template-columns:112px minmax(0,1fr); gap:8px 10px; margin:0; font:11px/1.45 var(--ol-debugger-font); }
+    dt { color:var(--ol-debugger-muted); } dd { margin:0; overflow-wrap:anywhere; color:var(--ol-debugger-text); }
+    .ol-debugger-empty { padding:24px 16px; color:var(--ol-debugger-muted); background:var(--ol-debugger-surface); border:1px dashed var(--ol-debugger-border); border-radius:10px; text-align:center; font:12px/1.6 var(--ol-debugger-font); }
+    .ol-debugger-suggestions { margin:8px 0 0; padding-left:17px; color:var(--ol-debugger-muted); font:11px/1.55 var(--ol-debugger-font); }
+    pre { max-height:180px; overflow:auto; margin:8px 0 0; padding:10px; color:var(--ol-debugger-text); background:var(--ol-debugger-surface); border:1px solid var(--ol-debugger-border); border-radius:8px; font:10px/1.5 ui-monospace,monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
+    footer { height:36px; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 14px; color:var(--ol-debugger-muted); border-top:1px solid var(--ol-debugger-border); font:10px/1 var(--ol-debugger-font); }
+    .ol-debugger-status { max-width:72%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .ol-debugger-toast { position:absolute; left:14px; bottom:48px; padding:9px 11px; color:var(--ol-debugger-text); background:var(--ol-debugger-subtle); border:1px solid var(--ol-debugger-border); border-radius:8px; box-shadow:0 8px 24px #0003; font:11px/1.3 var(--ol-debugger-font); }
+    @media (max-width:320px) { .ol-debugger-shell { width:100vw; border-radius:0!important; } }

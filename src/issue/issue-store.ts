@@ -1,4 +1,5 @@
 import type { DiagnosticIssue, DiagnosticIssueCandidate, IssueQueryOptions } from './issue-types.js';
+import { createIssueId } from './issue-identity.js';
 
 export class IssueStore {
   private readonly issues = new Map<string, DiagnosticIssue>();
@@ -12,7 +13,7 @@ export class IssueStore {
     const seen = new Set<string>();
     const now = this.now();
     for (const candidate of candidates) {
-      const id = issueId(candidate);
+      const id = createIssueId(candidate);
       seen.add(id);
       const previous = this.issues.get(id);
       this.issues.set(id, {
@@ -90,10 +91,6 @@ export class IssueStore {
       try { listener(issues.map(cloneIssue)); } catch { /* Notify remaining consumers even if one callback fails. */ }
     }
   }
-}
-
-export function issueId(candidate: Pick<DiagnosticIssueCandidate, 'ruleId' | 'objectId' | 'fingerprint'>): string {
-  return `${candidate.ruleId}:${candidate.objectId ?? 'map'}:${candidate.fingerprint}`;
 }
 
 function cloneCandidate(candidate: DiagnosticIssueCandidate): DiagnosticIssueCandidate {

@@ -1,10 +1,7 @@
+import type { DiagnosticContext } from './diagnostic-context.js';
+export type { DiagnosticContext } from './diagnostic-context.js';
 import type { DebugSnapshot } from '../snapshot/snapshot-types.js';
 import type { DiagnosticIssueCandidate } from '../issue/issue-types.js';
-
-export interface DiagnosticContext {
-  now(): number;
-  getLayer(id: string): DebugSnapshot['layers'][number] | undefined;
-}
 
 export interface DiagnosticRule {
   readonly id: string;
