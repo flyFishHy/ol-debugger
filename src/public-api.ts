@@ -10,6 +10,7 @@ import { defineOLDebuggerElements } from './ui/define-elements.js';
 import { DebuggerPanel } from './ui/debugger-panel.js';
 import type { DebuggerLayout, DebuggerTab, DebuggerTheme } from './ui/ui-types.js';
 import { PanelController } from './ui/panel-controller.js';
+import { registerToggleShortcut, validateToggleShortcut } from './ui/keyboard-shortcut.js';
 
 export type DebuggerPosition = 'left' | 'right';
 export type { DebuggerLayout, DebuggerTab, DebuggerTheme };
@@ -24,6 +25,8 @@ export interface DebuggerOptions {
   zIndex?: number;
   theme?: DebuggerTheme;
   initialTab?: DebuggerTab;
+  /** Keyboard chord that toggles the panel, for example `Ctrl+Shift+.`. Disabled by default. */
+  toggleShortcut?: string | false;
   enableDiagnostics?: boolean;
   autoDiagnose?: boolean;
   includeResolvedIssues?: boolean;
@@ -67,6 +70,10 @@ export function createDebugger(options: DebuggerOptions = {}): DebuggerControlle
   const resolved = { ...defaults, ...options };
   if (!Number.isFinite(resolved.width) || resolved.width <= 0) throw new DebuggerError('INVALID_OPTIONS', 'width must be a finite positive number.');
   if (!Number.isFinite(resolved.zIndex)) throw new DebuggerError('INVALID_OPTIONS', 'zIndex must be a finite number.');
+  if (resolved.toggleShortcut !== undefined && resolved.toggleShortcut !== false) {
+    try { validateToggleShortcut(resolved.toggleShortcut); }
+    catch (error) { throw new DebuggerError('INVALID_OPTIONS', error instanceof Error ? error.message : String(error)); }
+  }
   if (typeof document === 'undefined') throw new DebuggerError('UI_INITIALIZATION_FAILED', 'createDebugger() requires a browser document.');
 
   try { defineOLDebuggerElements(); }
@@ -92,12 +99,16 @@ export function createDebugger(options: DebuggerOptions = {}): DebuggerControlle
   panelController.refreshConnection();
 
   let destroyed = false;
+  const togglePanel = (): void => { panel.open = !panel.open; };
+  const unregisterShortcut = resolved.toggleShortcut
+    ? registerToggleShortcut(panel.ownerDocument, resolved.toggleShortcut, () => { if (!destroyed) togglePanel(); })
+    : undefined;
   const assertAlive = (): void => { if (destroyed) throw new DebuggerError('INSTANCE_DESTROYED', 'This debugger instance has been destroyed.'); };
   return {
     element: panel,
     open() { assertAlive(); panel.open = true; },
     close() { assertAlive(); panel.open = false; },
-    toggle() { assertAlive(); panel.open = !panel.open; },
+    toggle() { assertAlive(); togglePanel(); },
     connect(map) { assertAlive(); panelController.connect(map); },
     disconnect() { assertAlive(); panelController.disconnect(); },
     inspect() { return destroyed ? undefined : runtime.inspect(); },
@@ -111,6 +122,7 @@ export function createDebugger(options: DebuggerOptions = {}): DebuggerControlle
     subscribeIssues(listener) { return destroyed ? () => undefined : runtime.subscribeIssues(listener); },
     destroy() {
       if (destroyed) return;
+      unregisterShortcut?.();
       panelController.dispose();
       runtime.destroy();
       panel.remove();

@@ -31,7 +31,7 @@ const map = new Map({
   view: new View({ center: [0, 0], zoom: 2 }),
 });
 
-createDebugger({ map });
+createDebugger({ map, position:'left', theme:'light' ,toggleShortcut: 'Ctrl+Shift+.'});
 
 document.querySelector('#toggle-hidden')?.addEventListener('click', () => {
   hiddenLayer.setVisible(!hiddenLayer.getVisible());

@@ -46,6 +46,7 @@ The debugger does not create or dispose the map, mutate layer settings, or trans
 | `zIndex` | `2147483000` | Overlay stacking order; must be finite. |
 | `theme` | `dark` | `light`, `dark`, or `auto` (system preference). |
 | `initialTab` | `overview` | `overview`, `layers`, or `issues`. |
+| `toggleShortcut` | `false` | Optional key chord that toggles the panel, such as `Ctrl+Shift+.`. |
 | `enableDiagnostics` | `true` | Enables built-in and custom diagnostic rules. |
 | `autoDiagnose` | `true` | Re-runs diagnostics after observed map changes. |
 | `includeResolvedIssues` | `true` | Starts the Issues view with resolved issues included. |
@@ -57,6 +58,8 @@ The debugger does not create or dispose the map, mutate layer settings, or trans
 ## Controller
 
 `open()`, `close()` and `toggle()` control the panel. `connect(map)` switches the inspected map and `disconnect()` stops observing it. `inspect()` returns the current normalized snapshot; `diagnose()` immediately refreshes it and runs rules. `getIssues()` returns copied issue data, `subscribeSnapshot()` and `subscribeIssues()` return unsubscribe functions, and `exportReport()` returns a JSON-safe report object. Call `destroy()` when the debugger is no longer needed; it is idempotent and does not dispose the host map.
+
+To enable a document-level shortcut, pass a modifier chord such as `toggleShortcut: 'Ctrl+Shift+.'`. Supported modifier names are `Ctrl`/`Control`, `Alt`/`Option`, `Shift`, and `Meta`/`Cmd`/`Command`; one non-modifier key is required. The shortcut is disabled by default to avoid taking over host application keys. It is ignored while typing in form controls or editable content, and its listener is removed by `destroy()`. If multiple debugger instances use the same shortcut, the most recently created instance handles it; destroying that instance restores the previous handler. F12 is not registered by default because browsers commonly reserve it for developer tools.
 
 ## Included diagnostics
 
