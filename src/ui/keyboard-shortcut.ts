@@ -13,6 +13,7 @@ interface ShortcutRegistry {
   listener: (event: KeyboardEvent) => void;
 }
 
+// 弱引用
 const registries = new WeakMap<Document, ShortcutRegistry>();
 
 /** Register a document-level toggle shortcut. For duplicate bindings, the newest instance wins. */
